@@ -1,0 +1,6 @@
+{
+  "title": "Rep2recall",
+  "path": "./dist",
+  "port": 24000,
+  "token": "random"
+}

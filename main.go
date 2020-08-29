@@ -1,8 +1,8 @@
 package main
 
 /*
+#cgo darwin LDFLAGS: -framework CoreGraphics
 #if defined(__APPLE__)
-#cgo LDFLAGS: -framework CoreGraphics
 #include <CoreGraphics/CGDisplayConfiguration.h>
 int display_width() {
 	return CGDisplayPixelsWide(CGMainDisplayID());
@@ -21,8 +21,6 @@ int display_height() {
 */
 import "C"
 import (
-	"io"
-	"crypto/md5"
 	"strconv"
 	"encoding/json"
 	"io/ioutil"
@@ -56,13 +54,6 @@ func main() {
 	if data, err := ioutil.ReadFile("./config.json"); err != nil {
 		// Discard errors
 		json.Unmarshal(data, &config)
-	}
-
-	if config.Token == "random" {
-		h := md5.New()
-		io.WriteString(h, time.Now().String())
-		io.WriteString(h, "webview-server")
-		config.Token = fmt.Sprintf("%x", h.Sum(nil))
 	}
 
 	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))

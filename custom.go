@@ -1,6 +1,8 @@
 package main
 
 import (
+	"io"
+	"crypto/md5"
 	"path"
 	"log"
 	"os"
@@ -31,6 +33,13 @@ func CreateServer(config *Config) *http.Server {
 	mux := http.NewServeMux()
 
 	if config.Token != "" {
+		if config.Token == "random" {
+			h := md5.New()
+			io.WriteString(h, time.Now().String())
+			io.WriteString(h, "webview-server")
+			config.Token = fmt.Sprintf("%x", h.Sum(nil))
+		}
+
 		cookie := http.Cookie{
 			Name:    "token",
 			Value:   config.Token,
