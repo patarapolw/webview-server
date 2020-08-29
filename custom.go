@@ -1,14 +1,14 @@
 package main
 
 import (
-	"io"
-	"crypto/md5"
+	"crypto/rand"
+	"math/big"
+	"strings"
 	"path"
 	"log"
 	"os"
 	"io/ioutil"
 	"net/http"
-	"time"
 	"fmt"
 )
 
@@ -32,24 +32,21 @@ type Config struct {
 func CreateServer(config *Config) *http.Server {
 	mux := http.NewServeMux()
 
-	if config.Path == "" {
-		config.Path = "./"
+	if config.Token == "" {
+		n, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 256))
+		if err == nil {
+			config.Token = fmt.Sprintf("%x", n)
+		} else {
+			config.Token = "disabled"
+		}
 	}
 
 	cookie := http.Cookie{
 		Name:    "token",
 		Value:   config.Token,
 	}
-
-	if config.Token != "" {
-		if config.Token == "random" {
-			h := md5.New()
-			io.WriteString(h, time.Now().String())
-			io.WriteString(h, "webview-server")
-			config.Token = fmt.Sprintf("%x", h.Sum(nil))
-			cookie.Value = config.Token
-		}
-
+	
+	if config.Token != "disabled" {
 		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
 
 		mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
@@ -69,6 +66,17 @@ func CreateServer(config *Config) *http.Server {
 			for _, c := range r.Cookies() {
 				if (c.Name == "token" && c.Value == config.Token) {
 					isAuth = true
+					break
+				}
+			}
+		}
+
+		if !isAuth {
+			for _, c := range r.Header["Authorization"] {
+				p := strings.Split(c, " ")
+				if (len(p) == 2 && p[0] == "Bearer" && p[1] == config.Token) {
+					isAuth = true
+					break
 				}
 			}
 		}

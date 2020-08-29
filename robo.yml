@@ -2,18 +2,38 @@
 
 run:
   command: |
-    go run .
+    go build -o webview-server
+    ./webview-server
 build:
   command: |
     go build
+build-mac:
+  command: |
+    if [[ $(go env GOOS) == 'darwin' ]]; then
+      go build -o webview-server
+
+      FILENAME=webview-server-mac
+      WEBPATH=$(jq .path config.json); true
+
+      mkdir -p $FILENAME.app/Contents/MacOS
+      mkdir -p $FILENAME.app/Contents/Resources
+      cp Info.plist $FILENAME.app/Contents/Info.plist
+      cp webview-server $FILENAME.app/Contents/MacOS/webview-server
+      cp config.json $FILENAME.app/Contents/MacOS/config.json >/dev/null 2>&1 || true
+      cp index.html $FILENAME.app/Contents/MacOS/index.html >/dev/null 2>&1 || true
+      cp icon.icns $FILENAME.app/Contents/Resources/icon.icns >/dev/null 2>&1 || true
+
+      zip webview-server-mac.zip ./webview-server-mac.app
+    fi
 build-all:
   summary: |
-    Build for all platforms
+    Build for Linux and Windows
     Install using `go get github.com/karalabe/xgo`
   command: |
     $(go env GOPATH)/bin/xgo \
       -image={{.docker}} \
-      --targets=linux/amd64,windows/*,darwin/* \
+      -ldflags="-H windowsgui"
+      -targets=linux/amd64,windows/* \
       {{.repo}}
 docker-build:
   command: |

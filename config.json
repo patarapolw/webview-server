@@ -1,6 +1,17 @@
+// Everything can be omitted, including the absence of this file.
 {
-  "title": "Rep2recall",
-  "path": "./",
-  "port": 24000,
-  "token": "random"
+  // Non-empty blank string is the trick to hide the title.
+  "title": " ",
+  // "path": "./dist",
+  // If 0 or absent, with be randomly assigned.
+  "port": 24000
+  // If non-empty string value, it can used in request headers
+  // Authorization: `Bearer ${token}`
+  // If `disabled`, CSRF protection will be disabled.
+  // "token": "disabled"
+  // If size is absent, it will try to fullscreen.
+  // "size": {
+  //   "width": 1024,
+  //   "height": 768
+  // }
 }

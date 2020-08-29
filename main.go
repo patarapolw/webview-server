@@ -21,9 +21,10 @@ int display_height() {
 */
 import "C"
 import (
+	"path"
+	"path/filepath"
 	"math/rand"
 	"strconv"
-	"encoding/json"
 	"io/ioutil"
 	"fmt"
 	"time"
@@ -36,6 +37,7 @@ import (
 	"runtime"
 
 	"github.com/webview/webview"
+	"github.com/muhammadmuzzammil1998/jsonc"
 )
 
 func main() {
@@ -52,10 +54,13 @@ func main() {
 		Debug: debug,
 	}
 
-	if data, err := ioutil.ReadFile("config.json"); err == nil {
+	dir, _ := filepath.Abs(filepath.Dir(os.Args[0]))
+	if data, err := ioutil.ReadFile(path.Join(dir, "config.json")); err == nil {
 		// Discard errors
-		json.Unmarshal(data, &config)
+		jsonc.Unmarshal(data, &config)
 	}
+
+	config.Path = path.Join(dir, config.Path)
 
 	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))
 	if err != nil {
@@ -115,8 +120,35 @@ func main() {
 		w.Dispatch(func() {
 			w.Eval(fmt.Sprintf("location.href = '%s?v=%d';", url, rand.Int()))
 		})
+
+		time.Sleep(100 * time.Millisecond)
+
+		w.Dispatch(func() {
+			w.Bind("webview", &Webview{
+				webview: w,
+			})
+
+			w.Eval(`
+			var titleEl = document.querySelector("title");
+			if (titleEl) {
+				webview.setTitle(titleEl.innerText);
+			}
+			`)
+		})
 	}()
 
 	w.Run()
 	OnExit()
+}
+
+// Webview struct to be exported to JS
+type Webview struct {
+	webview webview.WebView
+}
+
+// SetTitle set title function
+func (w *Webview) SetTitle(title string) error {
+	(*w).webview.SetTitle(title)
+
+	return nil
 }

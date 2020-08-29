@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>CFBundleExecutable</key>
+    <string>webview-server</string>
+    <key>CFBundleGetInfoString</key>
+    <string>Webview</string>
+    <!-- <key>CFBundleIconFile</key>
+    <string>Glitch</string> -->
+    <key>CFBundleIdentifier</key>
+    <string>com.github.patarapolw.webview-server</string>
+    <key>CFBundleName</key>
+    <string>Webview</string>
+    <key>CFBundlePackageType</key>
+    <string>APPL</string>
+</dict>
+</plist>
