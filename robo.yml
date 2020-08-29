@@ -11,10 +11,21 @@ build-all:
     Build for all platforms
     Install using `go get github.com/karalabe/xgo`
   command: |
-    $(go env GOPATH)/bin/xgo {{.repo}}
+    webview
+    $(go env GOPATH)/bin/xgo \
+      -image={{.docker}} \
+      --targets=linux/*,windows/*,darwin/* \
+      {{.repo}}
+docker-build:
+  command: |
+    docker build -t {{.docker}} .
+docker-push:
+  command: |
+    docker push {{.docker}}
 
 ##########
 # Settings
 
 variables:
   repo: github.com/patarapolw/webview-server
+  docker: patarapolw/webview

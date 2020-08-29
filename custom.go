@@ -1,6 +1,7 @@
 package main
 
 import (
+	"path"
 	"log"
 	"os"
 	"io/ioutil"
@@ -9,19 +10,42 @@ import (
 	"fmt"
 )
 
+// WindowSize custom windom size
+type WindowSize struct {
+	Height	int
+	Width	int
+}
+
 // Config configuration for the webview
 type Config struct {
-	Title string
-	Port string
-	Path string
-	Debug string
+	Title	string	`json:",omitempty"`
+	Port	int	`json:",omitempty"`
+	Path	string	`json:",omitempty"`
+	Debug	bool	`json:",omitempty"`
+	Token	string	`json:",omitempty"`
+	Size WindowSize	`json:",omitempty"`
 }
 
 // CreateServer create server with custom handlers
-func CreateServer() *http.Server {
+func CreateServer(config *Config) *http.Server {
 	mux := http.NewServeMux()
 
-	mux.Handle("/", http.FileServer(http.Dir("./dist")))
+	if config.Token != "" {
+		cookie := http.Cookie{
+			Name:    "token",
+			Value:   config.Token,
+		}
+	
+		mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+			http.SetCookie(w, &cookie)
+			http.ServeFile(w, r, path.Join(config.Path, "index.html"))
+		})
+
+		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
+	} else {
+		mux.Handle("/", http.FileServer(http.Dir(config.Path)))
+	}
+
 	mux.HandleFunc("/api/file", func(w http.ResponseWriter, r *http.Request) {
 		f := r.URL.Query()["filename"]
 		if len(f) == 0 {

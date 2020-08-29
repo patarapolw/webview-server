@@ -62,9 +62,7 @@ export async function initDatabase () {
 
 ## Security concerns
 
-I learnt this from [pywebview](https://pywebview.flowrl.com/guide/security.html). A major thing about this is [CSRF attack](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)).
-
-Therefore, I plan to implement CSRF protection as well.
+I learnt this from [pywebview](https://pywebview.flowrl.com/guide/security.html). A major thing about this, is [CSRF attack](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)).
 
 ## Customization
 

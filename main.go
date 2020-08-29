@@ -10,10 +10,20 @@ int display_width() {
 int display_height() {
 	return CGDisplayPixelsHigh(CGMainDisplayID());
 }
+#else
+int display_width() {
+	return 0;
+}
+int display_height() {
+	return 0;
+}
 #endif
 */
 import "C"
 import (
+	"io"
+	"crypto/md5"
+	"strconv"
 	"encoding/json"
 	"io/ioutil"
 	"fmt"
@@ -30,11 +40,17 @@ import (
 )
 
 func main() {
+	port, _ := strconv.Atoi(os.Getenv("PORT"))
+	debug := false
+	if os.Getenv("DEBUG") != "" {
+		debug = true
+	}
+
 	config := Config{
 		Title: os.Getenv("TITLE"),
-		Port: os.Getenv("PORT"),
+		Port: port,
 		Path: os.Getenv("PATH"),
-		Debug: os.Getenv("DEBUG"),
+		Debug: debug,
 	}
 
 	if data, err := ioutil.ReadFile("./config.json"); err != nil {
@@ -42,37 +58,34 @@ func main() {
 		json.Unmarshal(data, &config)
 	}
 
-	if config.Port == "" {
-		config.Port = "0"
+	if config.Token == "random" {
+		h := md5.New()
+		io.WriteString(h, time.Now().String())
+		io.WriteString(h, "webview-server")
+		config.Token = fmt.Sprintf("%x", h.Sum(nil))
 	}
 
-	listener, err := net.Listen("tcp", "localhost:"+config.Port)
+	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	width := 1024
-	height := 768
-
-	if runtime.GOOS == "darwin" {
-		width = int(C.display_width())
-		height = int(C.display_height())
-	}
-
-	debug := false
-	if config.Debug != "" {
-		debug = true
+	if (config.Size == WindowSize{} && runtime.GOOS == "darwin") {
+		config.Size = WindowSize{
+			Width: int(C.display_width()),
+			Height: int(C.display_height()),
+		}
 	}
 
 	w := webview.New(webview.Settings{
 		Title: config.Title,
 		Debug: debug,
-		Width: width,
-		Height: height,
+		Width: config.Size.Width,
+		Height: config.Size.Height,
 		Resizable: true,
 	})
 
-	if runtime.GOOS != "darwin" {
+	if (config.Size == WindowSize{} && runtime.GOOS != "darwin") {
 		w.SetFullscreen(true)
 	}
 
@@ -89,7 +102,7 @@ func main() {
 
 	url := "http://" + listener.Addr().String()
 
-	server := CreateServer()
+	server := CreateServer(&config)
 
 	go func() {
 		log.Println("Listening at:", url)
