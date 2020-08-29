@@ -32,30 +32,52 @@ type Config struct {
 func CreateServer(config *Config) *http.Server {
 	mux := http.NewServeMux()
 
+	if config.Path == "" {
+		config.Path = "./"
+	}
+
+	cookie := http.Cookie{
+		Name:    "token",
+		Value:   config.Token,
+	}
+
 	if config.Token != "" {
 		if config.Token == "random" {
 			h := md5.New()
 			io.WriteString(h, time.Now().String())
 			io.WriteString(h, "webview-server")
 			config.Token = fmt.Sprintf("%x", h.Sum(nil))
+			cookie.Value = config.Token
 		}
 
-		cookie := http.Cookie{
-			Name:    "token",
-			Value:   config.Token,
-		}
-	
+		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
+
 		mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &cookie)
 			http.ServeFile(w, r, path.Join(config.Path, "index.html"))
 		})
-
-		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
 	} else {
 		mux.Handle("/", http.FileServer(http.Dir(config.Path)))
 	}
 
 	mux.HandleFunc("/api/file", func(w http.ResponseWriter, r *http.Request) {
+		isAuth := true
+
+		if config.Token != "" {
+			isAuth = false
+
+			for _, c := range r.Cookies() {
+				if (c.Name == "token" && c.Value == config.Token) {
+					isAuth = true
+				}
+			}
+		}
+
+		if !isAuth {
+			throwHTTP(&w, fmt.Errorf("unauthorized"), http.StatusUnauthorized)
+			return
+		}
+
 		f := r.URL.Query()["filename"]
 		if len(f) == 0 {
 			throwHTTP(&w, fmt.Errorf("filename not supplied"), http.StatusNotFound)
@@ -94,7 +116,7 @@ func CreateServer(config *Config) *http.Server {
 			return
 		}
 
-		throwHTTP(&w, fmt.Errorf("unsupported method"), http.StatusNotFound)
+		throwHTTP(&w, fmt.Errorf("unsupported method"), http.StatusMethodNotAllowed)
 	})
 
 	server := &http.Server{
@@ -107,7 +129,7 @@ func CreateServer(config *Config) *http.Server {
 // OnExit execute on exit, including SIGTERM and SIGINT
 func OnExit() {
 	log.Println("Executing clean-up function")
-	time.Sleep(2 * time.Second)
+	// time.Sleep(2 * time.Second)
 	log.Println("Clean-up finished")
 }
 

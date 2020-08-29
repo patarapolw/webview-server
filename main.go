@@ -47,11 +47,11 @@ func main() {
 	config := Config{
 		Title: os.Getenv("TITLE"),
 		Port: port,
-		Path: os.Getenv("PATH"),
+		Path: os.Getenv("WEBPATH"),
 		Debug: debug,
 	}
 
-	if data, err := ioutil.ReadFile("./config.json"); err != nil {
+	if data, err := ioutil.ReadFile("config.json"); err == nil {
 		// Discard errors
 		json.Unmarshal(data, &config)
 	}
@@ -102,7 +102,7 @@ func main() {
 		}
 	}()
 
-	w.Dispatch(func() {
+	go func() {
 		for {
 			time.Sleep(1 * time.Second)
 			_, err := http.Head(url)
@@ -110,8 +110,17 @@ func main() {
 				break
 			}
 		}
-		w.Eval(fmt.Sprintf("location.href = '%s'", url))
-	})
+
+		w.Dispatch(func() {
+			w.Eval(fmt.Sprintf("location.href = '%s';", url))
+		})
+
+		// For some reasons, there needs to reload.
+		time.Sleep(1000 * time.Millisecond)
+		w.Dispatch(func() {
+			w.Eval("location.reload();")
+		})
+	}()
 
 	w.Run()
 	OnExit()
