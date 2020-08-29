@@ -1,0 +1,20 @@
+# Commands
+
+run:
+  command: |
+    go run .
+build:
+  command: |
+    go build
+build-all:
+  summary: |
+    Build for all platforms
+    Install using `go get github.com/karalabe/xgo`
+  command: |
+    $(go env GOPATH)/bin/xgo {{.repo}}
+
+##########
+# Settings
+
+variables:
+  repo: github.com/patarapolw/webview-server
