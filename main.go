@@ -21,6 +21,7 @@ int display_height() {
 */
 import "C"
 import (
+	"math/rand"
 	"strconv"
 	"encoding/json"
 	"io/ioutil"
@@ -112,13 +113,7 @@ func main() {
 		}
 
 		w.Dispatch(func() {
-			w.Eval(fmt.Sprintf("location.href = '%s';", url))
-		})
-
-		// For some reasons, there needs to reload.
-		time.Sleep(1000 * time.Millisecond)
-		w.Dispatch(func() {
-			w.Eval("location.reload();")
+			w.Eval(fmt.Sprintf("location.href = '%s?v=%d';", url, rand.Int()))
 		})
 	}()
 
