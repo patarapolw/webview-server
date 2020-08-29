@@ -11,10 +11,9 @@ build-all:
     Build for all platforms
     Install using `go get github.com/karalabe/xgo`
   command: |
-    webview
     $(go env GOPATH)/bin/xgo \
       -image={{.docker}} \
-      --targets=linux/*,windows/*,darwin/* \
+      --targets=linux/amd64,windows/*,darwin/* \
       {{.repo}}
 docker-build:
   command: |
