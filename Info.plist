@@ -3,11 +3,11 @@
 <plist version="1.0">
 <dict>
     <key>CFBundleExecutable</key>
-    <string>webview-server</string>
+    <string>webview-server-mac</string>
     <key>CFBundleGetInfoString</key>
     <string>Webview</string>
-    <!-- <key>CFBundleIconFile</key>
-    <string>Glitch</string> -->
+    <key>CFBundleIconFile</key>
+    <string>icon</string>
     <key>CFBundleIdentifier</key>
     <string>com.github.patarapolw.webview-server</string>
     <key>CFBundleName</key>
