@@ -4,6 +4,18 @@ package main
 #cgo darwin LDFLAGS: -framework CoreGraphics
 #cgo linux pkg-config: x11
 
+#include <stdlib.h>
+
+extern int OnExit();
+
+void _cleanup() {
+	OnExit();
+}
+
+void set_cleanup() {
+	atexit(_cleanup);
+}
+
 #if defined(__APPLE__)
 #include <CoreGraphics/CGDisplayConfiguration.h>
 int display_width() {
@@ -107,7 +119,8 @@ func main() {
 	}
 
 	w := webview.New(debug)
-	defer OnExit()
+
+	C.set_cleanup()
 	defer w.Destroy()
 
 	w.SetTitle(config.Title)
@@ -134,7 +147,6 @@ func main() {
 
 	go func() {
 		<-signals
-		OnExit()
 		w.Terminate()
 	}()
 

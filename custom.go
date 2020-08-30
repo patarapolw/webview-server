@@ -1,6 +1,7 @@
 package main
 
 import (
+	"C"
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
@@ -135,10 +136,14 @@ func CreateServer(config *Config) *http.Server {
 }
 
 // OnExit execute on exit, including SIGTERM and SIGINT
-func OnExit() {
+//export OnExit
+func OnExit() C.int {
 	log.Println("Executing clean-up function")
 	// time.Sleep(2 * time.Second)
 	log.Println("Clean-up finished")
+
+	// Cannot seem to use C.void
+	return C.int(0)
 }
 
 func throwHTTP(w *http.ResponseWriter, e error, code int) {
