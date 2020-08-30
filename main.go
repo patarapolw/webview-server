@@ -121,7 +121,7 @@ func main() {
 			w.Eval(fmt.Sprintf("location.href = '%s?v=%d';", url, rand.Int()))
 		})
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep(200 * time.Millisecond)
 
 		w.Dispatch(func() {
 			w.Bind("webview", &Webview{
