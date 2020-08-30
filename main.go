@@ -2,6 +2,8 @@ package main
 
 /*
 #cgo darwin LDFLAGS: -framework CoreGraphics
+#cgo linux pkg-config: x11
+
 #if defined(__APPLE__)
 #include <CoreGraphics/CGDisplayConfiguration.h>
 int display_width() {
@@ -10,21 +12,39 @@ int display_width() {
 int display_height() {
 	return CGDisplayPixelsHigh(CGMainDisplayID());
 }
-#else
+#elif defined(_WIN32)
+#include <wtypes.h>
+#include <iostream>
 int display_width() {
-	return 0;
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+	return desktop.right;
 }
 int display_height() {
-	return 0;
+	RECT desktop;
+	const HWND hDesktop = GetDesktopWindow();
+	GetWindowRect(hDesktop, &desktop);
+	return desktop.bottom;
+}
+#else
+#include <X11/Xlib.h>
+int display_width() {
+	Display* d = XOpenDisplay(NULL);
+	Screen*  s = DefaultScreenOfDisplay(d);
+	return s->width;
+}
+int display_height() {
+	Display* d = XOpenDisplay(NULL);
+	Screen*  s = DefaultScreenOfDisplay(d);
+	return s->height;
 }
 #endif
 */
 import "C"
 import (
-	"fmt"
 	"io/ioutil"
 	"log"
-	"math/rand"
 	"net"
 	"net/http"
 	"os"
@@ -67,10 +87,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if (config.Size == WindowSize{} && runtime.GOOS == "darwin") {
+	if (config.Size == WindowSize{}) {
 		config.Size = WindowSize{
 			Width:  int(C.display_width()),
 			Height: int(C.display_height()),
+		}
+
+		// Current method of getting position in linux makes it fall offscreen
+		if runtime.GOOS == "linux" {
+			config.Size.Height = config.Size.Height - 100
 		}
 	}
 
@@ -82,17 +107,17 @@ func main() {
 		height = 768
 	}
 
-	w := webview.New(webview.Settings{
-		Title:     config.Title,
-		Debug:     debug,
-		Width:     width,
-		Height:    height,
-		Resizable: true,
-	})
+	w := webview.New(debug)
+	defer OnExit()
+	defer w.Destroy()
 
-	if (config.Size == WindowSize{} && runtime.GOOS != "darwin") {
-		w.SetFullscreen(true)
-	}
+	w.SetTitle(config.Title)
+	w.SetSize(width, height, webview.HintNone)
+
+	w.Bind("setTitle", func(title string) string {
+		w.SetTitle(title)
+		return title
+	})
 
 	// Catch exit signals and always execute OnExit
 	// including os.Interrupt, SIGINT and SIGTERM
@@ -102,7 +127,7 @@ func main() {
 	go func() {
 		<-signals
 		OnExit()
-		w.Exit()
+		w.Destroy()
 	}()
 
 	url := "http://" + listener.Addr().String()
@@ -126,37 +151,20 @@ func main() {
 		}
 
 		w.Dispatch(func() {
-			w.Eval(fmt.Sprintf("location.href = '%s?v=%d';", url, rand.Int()))
+			w.Navigate(url)
 		})
 
 		time.Sleep(200 * time.Millisecond)
 
 		w.Dispatch(func() {
-			w.Bind("webview", &Webview{
-				webview: w,
-			})
-
 			w.Eval(`
 			var titleEl = document.querySelector("title");
 			if (titleEl) {
-				webview.setTitle(titleEl.innerText);
+				setTitle(titleEl.innerText);
 			}
 			`)
 		})
 	}()
 
 	w.Run()
-	OnExit()
-}
-
-// Webview struct to be exported to JS
-type Webview struct {
-	webview webview.WebView
-}
-
-// SetTitle set title function
-func (w *Webview) SetTitle(title string) error {
-	(*w).webview.SetTitle(title)
-
-	return nil
 }
