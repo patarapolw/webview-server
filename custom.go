@@ -2,30 +2,30 @@ package main
 
 import (
 	"crypto/rand"
-	"math/big"
-	"strings"
-	"path"
-	"log"
-	"os"
-	"io/ioutil"
-	"net/http"
 	"fmt"
+	"io/ioutil"
+	"log"
+	"math/big"
+	"net/http"
+	"os"
+	"path"
+	"strings"
 )
 
 // WindowSize custom windom size
 type WindowSize struct {
-	Height	int
-	Width	int
+	Height int
+	Width  int
 }
 
 // Config configuration for the webview
 type Config struct {
-	Title	string	`json:",omitempty"`
-	Port	int	`json:",omitempty"`
-	Path	string	`json:",omitempty"`
-	Debug	bool	`json:",omitempty"`
-	Token	string	`json:",omitempty"`
-	Size WindowSize	`json:",omitempty"`
+	Title string     `json:",omitempty"`
+	Port  int        `json:",omitempty"`
+	Path  string     `json:",omitempty"`
+	Debug bool       `json:",omitempty"`
+	Token string     `json:",omitempty"`
+	Size  WindowSize `json:",omitempty"`
 }
 
 // CreateServer create server with custom handlers
@@ -42,14 +42,14 @@ func CreateServer(config *Config) *http.Server {
 	}
 
 	cookie := http.Cookie{
-		Name:    "token",
-		Value:   config.Token,
+		Name:  "token",
+		Value: config.Token,
 	}
-	
+
 	if config.Token != "disabled" {
 		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
 
-		mux.HandleFunc("/", func (w http.ResponseWriter, r *http.Request) {
+		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &cookie)
 			http.ServeFile(w, r, path.Join(config.Path, "index.html"))
 		})
@@ -64,7 +64,7 @@ func CreateServer(config *Config) *http.Server {
 			isAuth = false
 
 			for _, c := range r.Cookies() {
-				if (c.Name == "token" && c.Value == config.Token) {
+				if c.Name == "token" && c.Value == config.Token {
 					isAuth = true
 					break
 				}
@@ -74,7 +74,7 @@ func CreateServer(config *Config) *http.Server {
 		if !isAuth {
 			for _, c := range r.Header["Authorization"] {
 				p := strings.Split(c, " ")
-				if (len(p) == 2 && p[0] == "Bearer" && p[1] == config.Token) {
+				if len(p) == 2 && p[0] == "Bearer" && p[1] == config.Token {
 					isAuth = true
 					break
 				}

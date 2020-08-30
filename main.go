@@ -21,23 +21,23 @@ int display_height() {
 */
 import "C"
 import (
+	"fmt"
+	"io/ioutil"
+	"log"
+	"math/rand"
+	"net"
+	"net/http"
+	"os"
+	"os/signal"
 	"path"
 	"path/filepath"
-	"math/rand"
-	"strconv"
-	"io/ioutil"
-	"fmt"
-	"time"
-	"net/http"
-	"syscall"
-	"os/signal"
-	"log"
-	"os"
-	"net"
 	"runtime"
+	"strconv"
+	"syscall"
+	"time"
 
-	"github.com/webview/webview"
 	"github.com/muhammadmuzzammil1998/jsonc"
+	"github.com/webview/webview"
 )
 
 func main() {
@@ -49,8 +49,8 @@ func main() {
 
 	config := Config{
 		Title: os.Getenv("TITLE"),
-		Port: port,
-		Path: os.Getenv("WEBPATH"),
+		Port:  port,
+		Path:  os.Getenv("WEBPATH"),
 		Debug: debug,
 	}
 
@@ -69,16 +69,24 @@ func main() {
 
 	if (config.Size == WindowSize{} && runtime.GOOS == "darwin") {
 		config.Size = WindowSize{
-			Width: int(C.display_width()),
+			Width:  int(C.display_width()),
 			Height: int(C.display_height()),
 		}
 	}
 
+	width := config.Size.Width
+	height := config.Size.Height
+
+	if width == 0 || height == 0 {
+		width = 1024
+		height = 768
+	}
+
 	w := webview.New(webview.Settings{
-		Title: config.Title,
-		Debug: debug,
-		Width: config.Size.Width,
-		Height: config.Size.Height,
+		Title:     config.Title,
+		Debug:     debug,
+		Width:     width,
+		Height:    height,
 		Resizable: true,
 	})
 

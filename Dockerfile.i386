@@ -1,5 +1,5 @@
-FROM i386/ubuntu
+FROM i386/debian
 RUN apt-get update
 RUN apt-get install -y --no-install-recommends build-essential libgtk-3-dev libwebkit2gtk-4.0-dev wget
-RUN wget -c https://dl.google.com/go/go1.14.2.linux-amd64.tar.gz -O - | sudo tar -xz -C /usr/local
-RUN export PATH=\$PATH:/usr/local/go/bin
+RUN apt-get install -y golang
+RUN apt-get install -y git
