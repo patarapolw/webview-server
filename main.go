@@ -118,6 +118,15 @@ func main() {
 		return title
 	})
 
+	w.Init(`
+	window.onload = () => {
+		var titleEl = document.querySelector("title");
+		if (titleEl) {
+			setTitle(titleEl.innerText);
+		}
+	}
+	`)
+
 	// Catch exit signals and always execute OnExit
 	// including os.Interrupt, SIGINT and SIGTERM
 	signals := make(chan os.Signal, 1)
@@ -126,7 +135,7 @@ func main() {
 	go func() {
 		<-signals
 		OnExit()
-		w.Destroy()
+		w.Terminate()
 	}()
 
 	url := "http://" + listener.Addr().String()
@@ -151,17 +160,6 @@ func main() {
 
 		w.Dispatch(func() {
 			w.Navigate(url)
-		})
-
-		time.Sleep(200 * time.Millisecond)
-
-		w.Dispatch(func() {
-			w.Eval(`
-			var titleEl = document.querySelector("title");
-			if (titleEl) {
-				setTitle(titleEl.innerText);
-			}
-			`)
 		})
 	}()
 
