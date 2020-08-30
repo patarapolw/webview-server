@@ -18,7 +18,7 @@ build-mac:
       mkdir -p $FILENAME.app/Contents/MacOS
       mkdir -p $FILENAME.app/Contents/Resources
       cp Info.plist $FILENAME.app/Contents/Info.plist
-      cp webview-server $FILENAME.app/Contents/MacOS/$FILENAME
+      cp $FILENAME $FILENAME.app/Contents/MacOS/$FILENAME
       cp config.json $FILENAME.app/Contents/MacOS/config.json >/dev/null 2>&1 || true
       cp index.html $FILENAME.app/Contents/MacOS/index.html >/dev/null 2>&1 || true
       cp icon.icns $FILENAME.app/Contents/Resources/icon.icns >/dev/null 2>&1 || true
