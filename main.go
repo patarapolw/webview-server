@@ -14,7 +14,6 @@ int display_height() {
 }
 #elif defined(_WIN32)
 #include <wtypes.h>
-#include <iostream>
 int display_width() {
 	RECT desktop;
 	const HWND hDesktop = GetDesktopWindow();
