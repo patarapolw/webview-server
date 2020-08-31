@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"os/signal"
 	"runtime"
+	"syscall"
 	"time"
 
 	/*
@@ -67,10 +69,6 @@ import (
 	"github.com/patarapolw/webview-server/server"
 	"github.com/zserge/lorca"
 	"golang.org/x/crypto/ssh/terminal"
-)
-import (
-	"os/signal"
-	"syscall"
 )
 
 func main() {
