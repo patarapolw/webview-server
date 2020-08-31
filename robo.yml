@@ -27,6 +27,10 @@ build-all:
       -ldflags="-H windowsgui" \
       -targets=windows/* \
       {{.repo}}
+
+    $(go env GOPATH)/bin/xgo \
+      -targets=darwin/amd64 \
+      {{.repo}}
 docker-build:
   command: |
     for arch in amd64 i386

@@ -66,6 +66,14 @@ I learnt this from [pywebview](https://pywebview.flowrl.com/guide/security.html)
 
 Please see [custom.go](/custom.go). The easiest way is to create `config.json` alongside the built `webview-server[.exe]`.
 
+## Building
+
+You can also build for your platform, or multiple platforms at once -- take a peek inside [robo.yml](/robo.yml)
+
+Note that executables in macOS can also run in windowed mode (no console), by renaming the extension to `*.app`. No need to make a folder of `*.app/`.
+
+[`darwin`](https://en.wikipedia.org/wiki/Darwin_%28operating_system%29) binaries can used for macOS, although not built natively on macOS.
+
 ## Open without Chrome
 
 You can also open from Terminal with
