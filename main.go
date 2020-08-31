@@ -68,20 +68,26 @@ import (
 	"github.com/zserge/lorca"
 	"golang.org/x/crypto/ssh/terminal"
 )
+import (
+	"os/signal"
+	"syscall"
+)
 
 func main() {
 	config := conf.Get()
-	url := "http://" + config.Listener.Addr().String()
+
+	if os.Getenv("WINDOW") == "" {
+		if runInTerminal(config) {
+			return
+		}
+	}
 
 	if lorca.LocateChrome() == "" {
 		openBrowser("https://github.com/patarapolw/webview-server/blob/master/deps.md")
-		if terminal.IsTerminal(int(os.Stdout.Fd())) {
-			server := server.CreateServer(config)
-			log.Println("Listening at:", url)
-			server.Serve(config.Listener)
-		} else {
-			log.Fatal(fmt.Errorf("cannot open outside Chrome and terminal"))
+		if runInTerminal(config) {
+			return
 		}
+		log.Fatal(fmt.Errorf("cannot open outside Chrome and terminal"))
 	} else {
 		if (config.Size == conf.WindowSize{}) {
 			config.Size = conf.WindowSize{
@@ -89,8 +95,9 @@ func main() {
 				Height: int(C.display_height()),
 			}
 
-			// Current method of getting position in linux makes it fall offscreen
-			if runtime.GOOS == "linux" {
+			// Current method of getting screen size in linux and windows makes it fall offscreen
+			if runtime.GOOS == "linux" || runtime.GOOS == "windows" {
+				config.Size.Width = config.Size.Width - 50
 				config.Size.Height = config.Size.Height - 100
 			}
 		}
@@ -114,7 +121,7 @@ func main() {
 		server := server.CreateServer(config)
 
 		go func() {
-			log.Println("Listening at:", url)
+			log.Println("Listening at:", config.URL)
 			if err := server.Serve(config.Listener); err != http.ErrServerClosed {
 				log.Fatal(err)
 			}
@@ -123,17 +130,41 @@ func main() {
 		go func() {
 			for {
 				time.Sleep(1 * time.Second)
-				_, err := http.Head(url)
+				_, err := http.Head(config.URL)
 				if err == nil {
 					break
 				}
 			}
 
-			w.Load(url)
+			w.Load(config.URL)
 		}()
 
 		<-w.Done()
 	}
+}
+
+func runInTerminal(config *conf.Config) bool {
+	if terminal.IsTerminal(int(os.Stdout.Fd())) {
+		server := server.CreateServer(config)
+
+		// Catch exit signals and always execute OnExit
+		// including os.Interrupt, SIGINT and SIGTERM
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+
+		go func() {
+			<-signals
+			server.Close()
+			OnExit()
+		}()
+
+		log.Println("Listening at:", config.URL)
+		server.Serve(config.Listener)
+
+		return true
+	}
+
+	return false
 }
 
 func openBrowser(url string) {

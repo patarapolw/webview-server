@@ -40,6 +40,7 @@ func Get() *Config {
 		log.Fatal(err)
 	}
 	config.Listener = listener
+	config.URL = "http://" + config.Listener.Addr().String()
 
 	return &config
 }

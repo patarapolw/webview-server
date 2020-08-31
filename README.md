@@ -1,6 +1,6 @@
 # Practical web server in vanilla Go with clean-up function
 
-So, I tried to write a web server in Golang to fit in with [webview/webview](https://github.com/webview/webview). Focusing on [maximize/fullscreen on all platforms](https://github.com/webview/webview/issues/458) as well.
+So, I tried to write a web server in Golang to fit in with [zserge/lorca](https://github.com/zserge/lorca). Focusing on [maximize/fullscreen on all platforms](https://github.com/webview/webview/issues/458) as well.
 
 See [the original post](https://dev.to/patarapolw/practical-web-server-in-vanilla-go-with-clean-up-function-i-don-t-really-know-what-i-am-doing-1nh5).
 
@@ -10,8 +10,6 @@ Tested with cURL's
 % PORT=3000 go run .
 % curl -i -X PUT --data 'hello' http://127.0.0.1:3000/api/file\?filename\=test.txt
 ```
-
-I have another nice way to connect with frontend. You can argue that sending SQL and its parameters might be a better way...
 
 ```ts
 import Loki from 'lokijs'
@@ -67,3 +65,13 @@ I learnt this from [pywebview](https://pywebview.flowrl.com/guide/security.html)
 ## Customization
 
 Please see [custom.go](/custom.go). The easiest way is to create `config.json` alongside the built `webview-server[.exe]`.
+
+## Open without Chrome
+
+You can also open from Terminal with
+
+```sh
+./webview-server{DEPEND_ON_PLATFORM}
+```
+
+Provided that you can also revert to windowed mode with environmental variable `WINDOW=1`.

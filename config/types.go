@@ -16,5 +16,6 @@ type Config struct {
 	Debug    bool       `json:",omitempty"`
 	Token    string     `json:",omitempty"`
 	Size     WindowSize `json:",omitempty"`
+	URL      string
 	Listener net.Listener
 }
