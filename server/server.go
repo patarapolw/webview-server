@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"C"
@@ -11,26 +11,12 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	conf "github.com/patarapolw/webview-server/config"
 )
 
-// WindowSize custom windom size
-type WindowSize struct {
-	Height int
-	Width  int
-}
-
-// Config configuration for the webview
-type Config struct {
-	Title string     `json:",omitempty"`
-	Port  int        `json:",omitempty"`
-	Path  string     `json:",omitempty"`
-	Debug bool       `json:",omitempty"`
-	Token string     `json:",omitempty"`
-	Size  WindowSize `json:",omitempty"`
-}
-
 // CreateServer create server with custom handlers
-func CreateServer(config *Config) *http.Server {
+func CreateServer(config *conf.Config) *http.Server {
 	mux := http.NewServeMux()
 
 	if config.Token == "" {
@@ -133,17 +119,6 @@ func CreateServer(config *Config) *http.Server {
 	}
 
 	return server
-}
-
-// OnExit execute on exit, including SIGTERM and SIGINT
-//export OnExit
-func OnExit() C.int {
-	log.Println("Executing clean-up function")
-	// time.Sleep(2 * time.Second)
-	log.Println("Clean-up finished")
-
-	// Cannot seem to use C.void
-	return C.int(0)
 }
 
 func throwHTTP(w *http.ResponseWriter, e error, code int) {
