@@ -10,7 +10,7 @@ type WindowSize struct {
 
 // Config configuration for the webview
 type Config struct {
-	Title    string     `json:",omitempty"`
+	// Title    string     `json:",omitempty"`
 	Port     int        `json:",omitempty"`
 	Path     string     `json:",omitempty"`
 	Debug    bool       `json:",omitempty"`

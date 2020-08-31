@@ -21,7 +21,7 @@ func Get() *Config {
 	}
 
 	config := Config{
-		Title: os.Getenv("TITLE"),
+		// Title: os.Getenv("TITLE"),
 		Port:  port,
 		Path:  os.Getenv("WEBPATH"),
 		Debug: debug,

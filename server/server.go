@@ -1,7 +1,6 @@
 package server
 
 import (
-	"C"
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
@@ -28,12 +27,16 @@ func CreateServer(config *conf.Config) *http.Server {
 		}
 	}
 
+	if config.Token == "disabled" {
+		config.Token = ""
+	}
+
 	cookie := http.Cookie{
 		Name:  "token",
 		Value: config.Token,
 	}
 
-	if config.Token != "disabled" {
+	if config.Token != "" {
 		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
 
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {

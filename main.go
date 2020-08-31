@@ -152,5 +152,4 @@ func openBrowser(url string) {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 }

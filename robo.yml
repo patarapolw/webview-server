@@ -7,23 +7,7 @@ run:
 build-mac:
   command: |
     if [[ $(go env GOOS) == 'darwin' ]]; then
-      FILENAME=webview-server-mac
-
-      go build -o $FILENAME
-
-      if [ -f "config.json" ]; then
-        WEBPATH=$(cat config.json | grep -v "^\s*//"  | jq .path)
-      fi
-
-      mkdir -p $FILENAME.app/Contents/MacOS
-      mkdir -p $FILENAME.app/Contents/Resources
-      cp Info.plist $FILENAME.app/Contents/Info.plist
-      cp $FILENAME $FILENAME.app/Contents/MacOS/$FILENAME
-      cp config.json $FILENAME.app/Contents/MacOS/config.json >/dev/null 2>&1 || true
-      cp index.html $FILENAME.app/Contents/MacOS/index.html >/dev/null 2>&1 || true
-      cp icon.icns $FILENAME.app/Contents/Resources/icon.icns >/dev/null 2>&1 || true
-
-      zip $FILENAME.zip ./$FILENAME.app
+      go build -o webview-server-mac.app
     fi
 build-all:
   summary: |
@@ -43,14 +27,6 @@ build-all:
       -ldflags="-H windowsgui" \
       -targets=windows/* \
       {{.repo}}
-    
-    zip -rj webview-server-windows-4.0-386.zip \
-      webview-server-windows-4.0-386.exe \
-      $(go env GOPATH)/src/github.com/webview/webview/dll/x86/*
-    
-    zip -rj webview-server-windows-4.0-amd64.zip \
-      webview-server-windows-4.0-amd64.exe \
-      $(go env GOPATH)/src/github.com/webview/webview/dll/x64/*
 docker-build:
   command: |
     for arch in amd64 i386
