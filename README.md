@@ -71,7 +71,7 @@ window.onbeforeunload = (e: Event) => {
 }
 ```
 
-And, if you Webpack dev server (e.g. `webpack.config.js`)
+And, in you Webpack dev server (e.g. `webpack.config.js`)
 
 ```js
 // @ts-check
