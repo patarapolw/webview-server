@@ -80,6 +80,8 @@ You can also build for your platform, or multiple platforms at once -- take a pe
 
 Note that executables in macOS can also run in windowed mode (no console), by renaming the extension to `*.app`. No need to make a folder of `*.app/`.
 
+<small>I cannot upload <code>*.app</code> directly to GitHub Releases.</small>
+
 [`darwin`](https://en.wikipedia.org/wiki/Darwin_%28operating_system%29) binaries can used for macOS, although not built natively on macOS.
 
 ## Open without Chrome

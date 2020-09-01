@@ -31,8 +31,6 @@ build-all:
     $(go env GOPATH)/bin/xgo \
       -targets=darwin/amd64 \
       {{.repo}}
-
-    for f in ./webview-server-darwin*; do rm -f "$f.app" && mv "$f" "$f.app"; done
 docker-build:
   command: |
     for arch in amd64 i386
