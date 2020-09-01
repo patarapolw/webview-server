@@ -39,9 +39,10 @@ func Get() *Config {
 	config.Root = dir
 	config.Www = path.Join(dir, config.Www)
 
+	// Normalize filepaths on all platforms, and make it absolute (to executable)
 	for i, d := range config.Cmd {
-		if strings.HasPrefix(d, "."+strconv.QuoteRune(filepath.Separator)) {
-			config.Cmd[i] = path.Join(config.Root, d[2:])
+		if strings.HasPrefix(d, "./") || strings.HasPrefix(d, ".\\") {
+			config.Cmd[i] = path.Join(config.Root, filepath.FromSlash(d[2:]))
 		}
 	}
 
