@@ -1,11 +1,9 @@
 package server
 
 import (
-	"crypto/rand"
 	"fmt"
 	"io/ioutil"
 	"log"
-	"math/big"
 	"net/http"
 	"os"
 	"strings"
@@ -17,19 +15,6 @@ import (
 func CreateServer(config *conf.Config) *http.Server {
 	mux := http.NewServeMux()
 
-	if config.Token == "" {
-		n, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 256))
-		if err == nil {
-			config.Token = fmt.Sprintf("%x", n)
-		} else {
-			config.Token = "disabled"
-		}
-	}
-
-	if config.Token == "disabled" {
-		config.Token = ""
-	}
-
 	cookie := http.Cookie{
 		Name:  "token",
 		Value: config.Token,
@@ -38,10 +23,10 @@ func CreateServer(config *conf.Config) *http.Server {
 	if config.Token != "" {
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &cookie)
-			http.FileServer(http.Dir(config.Path)).ServeHTTP(w, r)
+			http.FileServer(http.Dir(config.Www)).ServeHTTP(w, r)
 		})
 	} else {
-		mux.Handle("/", http.FileServer(http.Dir(config.Path)))
+		mux.Handle("/", http.FileServer(http.Dir(config.Www)))
 	}
 
 	mux.HandleFunc("/api/file", func(w http.ResponseWriter, r *http.Request) {

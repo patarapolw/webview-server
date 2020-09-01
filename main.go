@@ -116,14 +116,16 @@ func main() {
 		defer OnExit()
 		defer w.Close()
 
-		server := server.CreateServer(config)
+		if !runExternalServer(config) {
+			server := server.CreateServer(config)
 
-		go func() {
-			log.Println("Listening at:", config.URL)
-			if err := server.Serve(config.Listener); err != http.ErrServerClosed {
-				log.Fatal(err)
-			}
-		}()
+			go func() {
+				log.Println("Listening at:", config.URL)
+				if err := server.Serve(config.Listener); err != http.ErrServerClosed {
+					log.Fatal(err)
+				}
+			}()
+		}
 
 		go func() {
 			for {
@@ -143,7 +145,38 @@ func main() {
 
 func runInTerminal(config *conf.Config) bool {
 	if terminal.IsTerminal(int(os.Stdout.Fd())) {
-		server := server.CreateServer(config)
+		if !runExternalServer(config) {
+			s := server.CreateServer(config)
+
+			// Catch exit signals and always execute OnExit
+			// including os.Interrupt, SIGINT and SIGTERM
+			signals := make(chan os.Signal, 1)
+			signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+
+			go func() {
+				<-signals
+				s.Close()
+				OnExit()
+			}()
+
+			log.Println("Listening at:", config.URL)
+			if err := s.Serve(config.Listener); err != nil {
+				log.Fatal(err)
+			}
+		}
+
+		return true
+	}
+
+	return false
+}
+
+func runExternalServer(config *conf.Config) bool {
+	if len(config.Cmd) > 0 {
+		cmd := exec.Cmd{
+			Args: config.Cmd,
+			Env:  os.Environ(),
+		}
 
 		// Catch exit signals and always execute OnExit
 		// including os.Interrupt, SIGINT and SIGTERM
@@ -152,12 +185,13 @@ func runInTerminal(config *conf.Config) bool {
 
 		go func() {
 			<-signals
-			server.Close()
+			cmd.Process.Kill()
 			OnExit()
 		}()
 
-		log.Println("Listening at:", config.URL)
-		server.Serve(config.Listener)
+		if err := cmd.Start(); err != nil {
+			log.Fatal(err)
+		}
 
 		return true
 	}

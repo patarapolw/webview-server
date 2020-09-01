@@ -11,8 +11,8 @@ build-mac:
     fi
 build-all:
   summary: |
-    Build for Linux and Windows
-    Install using `go get github.com/karalabe/xgo`
+    Build for Linux, Windows, and macOS
+    Install `xgo` using `go get github.com/karalabe/xgo`
   command: |
     for arch in amd64 i386
     do
@@ -31,6 +31,8 @@ build-all:
     $(go env GOPATH)/bin/xgo \
       -targets=darwin/amd64 \
       {{.repo}}
+
+    for f in ./webview-server-darwin*; do mv "$f" "$f.app"; done
 docker-build:
   command: |
     for arch in amd64 i386

@@ -1,4 +1,4 @@
-# Practical web server in vanilla Go with clean-up function
+# Practical web server in Golang with clean-up function
 
 So, I tried to write a web server in Golang to fit in with [zserge/lorca](https://github.com/zserge/lorca). Focusing on [maximize/fullscreen on all platforms](https://github.com/webview/webview/issues/458) as well.
 
@@ -10,6 +10,8 @@ Tested with cURL's
 % PORT=3000 go run .
 % curl -i -X PUT --data 'hello' http://127.0.0.1:3000/api/file\?filename\=test.txt
 ```
+
+This, by default, works with [lokijs](https://github.com/techfort/LokiJS), by using a custom adaptor.
 
 ```ts
 import Loki from 'lokijs'
@@ -58,13 +60,19 @@ export async function initDatabase () {
 }
 ```
 
+## Web browser in use
+
+Currently, this app doesn't bundle a web browser. Instead, it uses Chrome DevTools Protocol; therefore, either Chrome or Chromium must be installed.
+
+See [/deps.md](/deps.md).
+
 ## Security concerns
 
 I learnt this from [pywebview](https://pywebview.flowrl.com/guide/security.html). A major thing about this, is [CSRF attack](https://www.owasp.org/index.php/Cross-Site_Request_Forgery_(CSRF)).
 
 ## Customization
 
-Please see [custom.go](/custom.go). The easiest way is to create `config.json` alongside the built `webview-server[.exe]`.
+Please see [/config/types.go](/config/types.go). The easiest way is to create `/config.yaml` alongside the built `webview-server*`.
 
 ## Building
 
