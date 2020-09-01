@@ -8,7 +8,6 @@ import (
 	"math/big"
 	"net/http"
 	"os"
-	"path"
 	"strings"
 
 	conf "github.com/patarapolw/webview-server/config"
@@ -37,11 +36,9 @@ func CreateServer(config *conf.Config) *http.Server {
 	}
 
 	if config.Token != "" {
-		mux.Handle("/*", http.FileServer(http.Dir(config.Path)))
-
 		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 			http.SetCookie(w, &cookie)
-			http.ServeFile(w, r, path.Join(config.Path, "index.html"))
+			http.FileServer(http.Dir(config.Path)).ServeHTTP(w, r)
 		})
 	} else {
 		mux.Handle("/", http.FileServer(http.Dir(config.Path)))

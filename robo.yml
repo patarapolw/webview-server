@@ -3,7 +3,7 @@
 run:
   command: |
     go build -o webview-server
-    ./webview-server
+    WINDOW=1 ./webview-server
 build-mac:
   command: |
     if [[ $(go env GOOS) == 'darwin' ]]; then
