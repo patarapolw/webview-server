@@ -11,6 +11,7 @@ import (
 	"path"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"gopkg.in/yaml.v2"
 )
@@ -35,7 +36,14 @@ func Get() *Config {
 		yaml.Unmarshal(data, &config)
 	}
 
+	config.Root = dir
 	config.Www = path.Join(dir, config.Www)
+
+	for i, d := range config.Cmd {
+		if strings.HasPrefix(d, "."+strconv.QuoteRune(filepath.Separator)) {
+			config.Cmd[i] = path.Join(config.Root, d[2:])
+		}
+	}
 
 	if config.Token == "" {
 		n, err := rand.Int(rand.Reader, new(big.Int).Lsh(big.NewInt(1), 256))
@@ -53,6 +61,7 @@ func Get() *Config {
 	os.Setenv("PORT", strconv.Itoa(config.Port))
 	os.Setenv("WWW", config.Www)
 	os.Setenv("TOKEN", config.Token)
+	os.Setenv("ROOT", config.Root)
 
 	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))
 	if err != nil {

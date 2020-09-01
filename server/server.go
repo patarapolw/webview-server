@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"strings"
 
 	conf "github.com/patarapolw/webview-server/config"
@@ -63,7 +64,7 @@ func CreateServer(config *conf.Config) *http.Server {
 			throwHTTP(&w, fmt.Errorf("filename not supplied"), http.StatusNotFound)
 			return
 		}
-		filename := f[0]
+		filename := path.Join(config.Root, f[0])
 
 		if r.Method == "GET" {
 			data, eReadFile := ioutil.ReadFile(filename)

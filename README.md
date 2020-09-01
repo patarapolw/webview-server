@@ -58,6 +58,77 @@ export async function initDatabase () {
     })
   })
 }
+
+window.onbeforeunload = (e: Event) => {
+  if (loki) {
+    if (loki.autosaveDirty()) {
+      loki.saveDatabase()
+
+      e.preventDefault()
+      e.returnValue = false
+    }
+  }
+}
+```
+
+And, if you Webpack dev server (e.g. `webpack.config.js`)
+
+```js
+// @ts-check
+
+/* eslint-disable @typescript-eslint/no-var-requires */
+const fs = require('fs')
+const path = require('path')
+
+const morgan = require('morgan')
+
+const BINARY_DIR = 'release'
+
+module.exports = {
+  devServer: {
+    /**
+     *
+     * @param {import('express').Express} app
+     * @param {import('http').Server} server
+     * @param {*} compiler
+     */
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    before (app, server, compiler) {
+      app.use('/api', morgan('tiny'))
+
+      app.get('/api/file', (req, res) => {
+        /** @type {*} */
+        const { filename } = req.query
+        const p = path.resolve(__dirname, BINARY_DIR, filename)
+
+        if (fs.existsSync(p)) {
+          fs.createReadStream(p).pipe(res)
+          return
+        }
+
+        res.sendStatus(404)
+      })
+
+      app.put('/api/file', (req, res) => {
+        /** @type {*} */
+        const { filename } = req.query
+        const p = path.resolve(__dirname, BINARY_DIR, filename)
+
+        req.pipe(fs.createWriteStream(p))
+        res.sendStatus(201)
+      })
+
+      app.delete('/api/file', (req, res) => {
+        /** @type {*} */
+        const { filename } = req.query
+        const p = path.resolve(__dirname, BINARY_DIR, filename)
+
+        fs.unlinkSync(p)
+        res.sendStatus(201)
+      })
+    }
+  }
+}
 ```
 
 ## Web browser in use

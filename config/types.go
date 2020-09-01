@@ -18,6 +18,7 @@ type Config struct {
 	Cmd   []string
 
 	// Internal
+	Root     string
 	URL      string
 	Listener net.Listener
 }
