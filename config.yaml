@@ -18,4 +18,4 @@ port: 24000
 #   height: 768
 
 # Of course, external server can also be used.
-# cmd: 'java -jar shadowJar.jar'
+# cmd: [java, -jar, shadowJar.jar]
