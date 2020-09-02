@@ -70,6 +70,7 @@ import (
 	"github.com/zserge/lorca"
 	"golang.org/x/crypto/ssh/terminal"
 )
+import "strconv"
 
 func main() {
 	config := conf.Get()
@@ -117,11 +118,12 @@ func main() {
 		defer w.Close()
 
 		if !runExternalServer(config) {
-			server := server.CreateServer(config)
+			app := server.CreateServer(config)
 
 			go func() {
-				log.Println("Listening at:", config.URL)
-				if err := server.Serve(config.Listener); err != http.ErrServerClosed {
+				log.Println("Listening at:", config.URL())
+				config.Listener.Close()
+				if err := app.Listen("127.0.0.1:" + strconv.Itoa(config.Port)); err != nil {
 					log.Fatal(err)
 				}
 			}()
@@ -130,13 +132,13 @@ func main() {
 		go func() {
 			for {
 				time.Sleep(1 * time.Second)
-				_, err := http.Head(config.URL)
+				_, err := http.Head(config.URL())
 				if err == nil {
 					break
 				}
 			}
 
-			w.Load(config.URL)
+			w.Load(config.URL())
 		}()
 
 		<-w.Done()
@@ -146,7 +148,7 @@ func main() {
 func runInTerminal(config *conf.Config) bool {
 	if terminal.IsTerminal(int(os.Stdout.Fd())) {
 		if !runExternalServer(config) {
-			s := server.CreateServer(config)
+			app := server.CreateServer(config)
 
 			// Catch exit signals and always execute OnExit
 			// including os.Interrupt, SIGINT and SIGTERM
@@ -155,12 +157,18 @@ func runInTerminal(config *conf.Config) bool {
 
 			go func() {
 				<-signals
-				s.Close()
 				OnExit()
+
+				p, err := os.FindProcess(os.Getppid())
+				if err == nil {
+					_, _ = p.Wait()
+				}
+				os.Exit(1)
 			}()
 
-			log.Println("Listening at:", config.URL)
-			if err := s.Serve(config.Listener); err != nil {
+			log.Println("Listening at:", config.URL())
+			config.Listener.Close()
+			if err := app.Listen("127.0.0.1:" + strconv.Itoa(config.Port)); err != nil {
 				log.Fatal(err)
 			}
 		}

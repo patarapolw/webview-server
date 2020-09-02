@@ -20,6 +20,10 @@ type Config struct {
 
 	// Internal
 	Root     string
-	URL      string
 	Listener net.Listener
+}
+
+// URL get the URL from port
+func (c *Config) URL() string {
+	return "http://" + c.Listener.Addr().String()
 }

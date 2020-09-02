@@ -2,11 +2,10 @@ package sqlite
 
 import (
 	"encoding/json"
-	"io"
 	"log"
 	"net/http"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber"
 	"github.com/jmoiron/sqlx"
 
 	// Expose sqlite3 to database/sql
@@ -14,7 +13,7 @@ import (
 )
 
 // BindRoutes bind SQLite routes to REST client
-func BindRoutes(router *gin.RouterGroup, connString string) {
+func BindRoutes(router fiber.Router, connString string) {
 	db, err := sqlx.Open("sqlite3", connString)
 	if err != nil {
 		log.Fatal(err)
@@ -26,9 +25,11 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 	defer store.Free()
 
-	router.POST("/exec", func(c *gin.Context) {
+	router.Post("/exec", func(c *fiber.Ctx) {
 		var body BodyQuery
-		c.BindJSON(&body)
+		if err := c.BodyParser(&body); err != nil {
+			log.Fatal(err)
+		}
 
 		stmt := body.Prepare(&store)
 
@@ -36,12 +37,14 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-		c.JSON(http.StatusCreated, gin.H{})
+		c.SendStatus(http.StatusCreated)
 	})
 
-	router.POST("/query", func(c *gin.Context) {
+	router.Post("/query", func(c *fiber.Ctx) {
 		var body BodyQuery
-		c.BindJSON(&body)
+		if err := c.BodyParser(&body); err != nil {
+			log.Fatal(err)
+		}
 
 		stmt := body.Prepare(&store)
 
@@ -61,15 +64,17 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 			result = append(result, row)
 		}
-		c.JSON(http.StatusOK, gin.H{
+		c.Send(map[string]interface{}{
 			"result": result,
 		})
 	})
 
 	// Return ndjson stream
-	router.POST("/stream", func(c *gin.Context) {
+	router.Post("/stream", func(c *fiber.Ctx) {
 		var body BodyQuery
-		c.BindJSON(&body)
+		if err := c.BodyParser(&body); err != nil {
+			log.Fatal(err)
+		}
 
 		stmt := body.Prepare(&store)
 
@@ -78,24 +83,20 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 			log.Fatal(err)
 		}
 
-		c.Stream(func(w io.Writer) bool {
-			for rows.Next() {
-				var row map[string]interface{}
-				err := rows.StructScan(&row)
-				if err != nil {
-					log.Fatalln(err)
-				}
-
-				json, err := json.Marshal(row)
-				if err != nil {
-					log.Fatalln(err)
-				}
-
-				w.Write(json)
-				w.Write([]byte("\n"))
+		for rows.Next() {
+			var row map[string]interface{}
+			err := rows.StructScan(&row)
+			if err != nil {
+				log.Fatalln(err)
 			}
 
-			return false
-		})
+			json, err := json.Marshal(row)
+			if err != nil {
+				log.Fatalln(err)
+			}
+
+			c.Write(json)
+			c.Write([]byte("\n"))
+		}
 	})
 }

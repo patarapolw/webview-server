@@ -1,63 +1,57 @@
 package file
 
 import (
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
 
-	"github.com/gin-gonic/gin"
+	"github.com/gofiber/fiber"
 )
 
 // BindRoutes bind file routes to REST client
-func BindRoutes(router *gin.RouterGroup, root string) {
-	router.GET("/", func(c *gin.Context) {
+func BindRoutes(router fiber.Router, root string) {
+	router.Get("/", func(c *fiber.Ctx) {
 		var qs querystring
-		c.BindQuery(&qs)
+		if err := c.QueryParser(qs); err != nil {
+			log.Fatal(err)
+		}
 
 		data, err := ioutil.ReadFile(qs.Filepath(root))
 		if err != nil {
 			log.Fatal(err)
-			return
 		}
 
-		c.Stream(func(w io.Writer) bool {
-			w.Write(data)
-			return false
-		})
+		c.Write(data)
 	})
 
-	router.PUT("/", func(c *gin.Context) {
+	router.Put("/", func(c *fiber.Ctx) {
 		var qs querystring
-		c.BindQuery(&qs)
-
-		data, err := ioutil.ReadAll(c.Request.Body)
-		if err != nil {
+		if err := c.QueryParser(qs); err != nil {
 			log.Fatal(err)
-			return
-		}
-		err = ioutil.WriteFile(qs.Filepath(root), data, 0666)
-		if err != nil {
-			log.Fatal(err)
-			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{})
+		err := ioutil.WriteFile(qs.Filepath(root), []byte(c.Body()), 0666)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		c.SendStatus(http.StatusCreated)
 	})
 
-	router.DELETE("/", func(c *gin.Context) {
+	router.Delete("/", func(c *fiber.Ctx) {
 		var qs querystring
-		c.BindQuery(&qs)
+		if err := c.QueryParser(qs); err != nil {
+			log.Fatal(err)
+		}
 
 		err := os.Remove(qs.Filepath(root))
 		if err != nil {
 			log.Fatal(err)
-			return
 		}
 
-		c.JSON(http.StatusCreated, gin.H{})
+		c.SendStatus(http.StatusCreated)
 	})
 }
 
@@ -67,5 +61,9 @@ type querystring struct {
 
 // Filepath get filepath from querystring
 func (qs *querystring) Filepath(root string) string {
+	if qs.filename == "" {
+		log.Fatal("query.filename is required")
+	}
+
 	return path.Join(root, qs.filename)
 }

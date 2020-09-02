@@ -70,7 +70,6 @@ func Get() *Config {
 	}
 
 	config.Listener = listener
-	config.URL = "http://" + config.Listener.Addr().String()
 
 	return &config
 }
