@@ -15,6 +15,10 @@ import (
 
 // BindRoutes bind SQLite routes to REST client
 func BindRoutes(router *gin.RouterGroup, connString string) {
+	if connString == "" {
+		return
+	}
+
 	db, err := sqlx.Open("sqlite3", connString)
 	if err != nil {
 		log.Fatal(err)
