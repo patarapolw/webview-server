@@ -1,113 +1,86 @@
 package server
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
-	"os"
-	"path"
+	"net/url"
 	"strings"
 
+	"github.com/patarapolw/webview-server/file"
+	"github.com/patarapolw/webview-server/sqlite"
+
+	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-gonic/gin"
 	conf "github.com/patarapolw/webview-server/config"
 )
 
 // CreateServer create server with custom handlers
 func CreateServer(config *conf.Config) *http.Server {
-	mux := http.NewServeMux()
-
-	cookie := http.Cookie{
-		Name:  "token",
-		Value: config.Token,
+	if !config.Debug {
+		gin.SetMode(gin.ReleaseMode)
 	}
+
+	app := gin.Default()
 
 	if config.Token != "" {
-		mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-			http.SetCookie(w, &cookie)
-			http.FileServer(http.Dir(config.Www)).ServeHTTP(w, r)
+		app.Use(func(c *gin.Context) {
+			log.Println(c.Request.URL.RawPath)
+			if c.Request.URL.RawPath == "/" {
+				http.SetCookie(c.Writer, &http.Cookie{
+					Name:     "token",
+					Value:    url.QueryEscape(config.Token),
+					Path:     "/",
+					Domain:   config.URL,
+					SameSite: http.SameSiteStrictMode,
+					Secure:   false,
+					HttpOnly: true,
+				})
+			}
 		})
-	} else {
-		mux.Handle("/", http.FileServer(http.Dir(config.Www)))
 	}
 
-	mux.HandleFunc("/api/file", func(w http.ResponseWriter, r *http.Request) {
+	app.Use(static.Serve("/", static.LocalFile(config.Www, true)))
+
+	apiRouter := app.Group("/api", func(c *gin.Context) {
 		isAuth := true
 
 		if config.Token != "" {
 			isAuth = false
 
-			for _, c := range r.Cookies() {
-				if c.Name == "token" && c.Value == config.Token {
+			if cookie, err := c.Cookie("token"); err != nil {
+				if cookie == config.Token {
 					isAuth = true
-					break
 				}
 			}
 		}
 
 		if !isAuth {
-			for _, c := range r.Header["Authorization"] {
-				p := strings.Split(c, " ")
+			var header struct {
+				Authorization string
+			}
+
+			if err := c.ShouldBindHeader(&header); err != nil {
+				p := strings.Split(header.Authorization, " ")
 				if len(p) == 2 && p[0] == "Bearer" && p[1] == config.Token {
 					isAuth = true
-					break
 				}
 			}
 		}
 
 		if !isAuth {
-			throwHTTP(&w, fmt.Errorf("unauthorized"), http.StatusUnauthorized)
-			return
+			c.JSON(http.StatusUnauthorized, gin.H{})
 		}
-
-		f := r.URL.Query()["filename"]
-		if len(f) == 0 {
-			throwHTTP(&w, fmt.Errorf("filename not supplied"), http.StatusNotFound)
-			return
-		}
-		filename := path.Join(config.Root, f[0])
-
-		if r.Method == "GET" {
-			data, eReadFile := ioutil.ReadFile(filename)
-			if eReadFile != nil {
-				throwHTTP(&w, eReadFile, http.StatusInternalServerError)
-				return
-			}
-			w.Write(data)
-			return
-		} else if r.Method == "PUT" {
-			data, eReadAll := ioutil.ReadAll(r.Body)
-			if eReadAll != nil {
-				throwHTTP(&w, eReadAll, http.StatusInternalServerError)
-				return
-			}
-			eWriteFile := ioutil.WriteFile(filename, data, 0666)
-			if eWriteFile != nil {
-				throwHTTP(&w, eWriteFile, http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusCreated)
-			return
-		} else if r.Method == "DELETE" {
-			eRemove := os.Remove(filename)
-			if eRemove != nil {
-				throwHTTP(&w, eRemove, http.StatusInternalServerError)
-				return
-			}
-			w.WriteHeader(http.StatusCreated)
-			return
-		}
-
-		throwHTTP(&w, fmt.Errorf("unsupported method"), http.StatusMethodNotAllowed)
 	})
 
+	file.BindRoutes(apiRouter.Group("/file"), config.Root)
+
+	if config.Sqlite != "" {
+		sqlite.BindRoutes(apiRouter.Group("/sqlite"), config.Sqlite)
+	}
+
 	server := &http.Server{
-		Handler: mux,
+		Handler: app,
 	}
 
 	return server
-}
-
-func throwHTTP(w *http.ResponseWriter, e error, code int) {
-	http.Error(*w, e.Error(), code)
-	log.Println(code, e)
 }
