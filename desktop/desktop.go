@@ -59,7 +59,7 @@ import "github.com/patarapolw/webview-server/config"
 func Init(hs *server.Handlers, cleanup ...func()) {
 	if lorca.LocateChrome() == "" {
 		OpenBrowser("https://github.com/patarapolw/webview-server/blob/master/deps.md")
-		log.Fatal(fmt.Errorf("cannot open outside Chrome desktop application"))
+		panic(fmt.Errorf("cannot open outside Chrome desktop application"))
 	} else {
 		if (hs.Config.Size == config.WindowSize{}) {
 			hs.Config.Size = config.WindowSize{
@@ -84,7 +84,7 @@ func Init(hs *server.Handlers, cleanup ...func()) {
 
 		w, err := lorca.New("data:text/html,<title>Loading...</title>", "", width, height)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		defer func() {
@@ -95,22 +95,22 @@ func Init(hs *server.Handlers, cleanup ...func()) {
 		defer w.Close()
 
 		go func() {
-			log.Println("Listening at:", hs.Config.URL())
+			log.Println("Listening at:", hs.Config.URL)
 			if err := hs.Serve(); err != http.ErrServerClosed {
-				log.Fatal(err)
+				panic(err)
 			}
 		}()
 
 		go func() {
 			for {
 				time.Sleep(1 * time.Second)
-				_, err := http.Head(hs.Config.URL())
+				_, err := http.Head(hs.Config.URL)
 				if err == nil {
 					break
 				}
 			}
 
-			w.Load(hs.Config.URL())
+			w.Load(hs.Config.URL)
 		}()
 
 		<-w.Done()
@@ -132,6 +132,6 @@ func OpenBrowser(url string) {
 		err = fmt.Errorf("unsupported platform")
 	}
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 }

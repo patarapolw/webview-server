@@ -3,3 +3,5 @@ document.querySelectorAll("button").forEach((el) => {
     alert("clicked")
   }
 })
+
+fetch("/api/file?filename=missing.txt")

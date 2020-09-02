@@ -4,7 +4,6 @@ import (
 	"crypto/rand"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"net"
 	"os"
@@ -59,17 +58,19 @@ func Get() *Config {
 		config.Token = ""
 	}
 
+	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))
+	if err != nil {
+		panic(err)
+	}
+
+	config.Port = listener.Addr().(*net.TCPAddr).Port
+	config.URL = "http://" + listener.Addr().String()
+	listener.Close()
+
 	os.Setenv("PORT", strconv.Itoa(config.Port))
 	os.Setenv("WWW", config.Www)
 	os.Setenv("TOKEN", config.Token)
 	os.Setenv("ROOT", config.Root)
-
-	listener, err := net.Listen("tcp", "localhost:"+strconv.Itoa(config.Port))
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	config.Listener = listener
 
 	return &config
 }

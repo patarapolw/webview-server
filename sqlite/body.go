@@ -1,8 +1,6 @@
 package sqlite
 
 import (
-	"log"
-
 	"github.com/jmoiron/sqlx"
 )
 
@@ -18,7 +16,7 @@ type BodyQuery struct {
 func (body *BodyQuery) Prepare(s *StatementStore) *sqlx.Stmt {
 	if body.SQL == "" {
 		if body.ID == "" {
-			log.Fatal("body.ID not supplied")
+			panic("body.ID not supplied")
 		}
 
 		return s.store[body.ID]
@@ -26,7 +24,7 @@ func (body *BodyQuery) Prepare(s *StatementStore) *sqlx.Stmt {
 
 	stmt, err := s.DB.Preparex(body.SQL)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	if body.ID != "" {

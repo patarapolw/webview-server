@@ -3,7 +3,6 @@ package sqlite
 import (
 	"encoding/json"
 	"io"
-	"log"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -21,7 +20,7 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 	db, err := sqlx.Open("sqlite3", connString)
 	if err != nil {
-		log.Fatal(err)
+		panic(err)
 	}
 
 	store := StatementStore{
@@ -38,9 +37,9 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 		_, err := stmt.Exec(body.Params...)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		c.JSON(http.StatusCreated, gin.H{})
+		c.AbortWithStatus(http.StatusCreated)
 	})
 
 	router.POST("/query", func(c *gin.Context) {
@@ -51,7 +50,7 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 		rows, err := stmt.Queryx(body.Params...)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		result := []map[string]interface{}{}
@@ -60,7 +59,7 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 			var row map[string]interface{}
 			err := rows.StructScan(&row)
 			if err != nil {
-				log.Fatalln(err)
+				panic(err)
 			}
 
 			result = append(result, row)
@@ -79,7 +78,7 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 
 		rows, err := stmt.Queryx(body.Params...)
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
 
 		c.Stream(func(w io.Writer) bool {
@@ -87,12 +86,12 @@ func BindRoutes(router *gin.RouterGroup, connString string) {
 				var row map[string]interface{}
 				err := rows.StructScan(&row)
 				if err != nil {
-					log.Fatalln(err)
+					panic(err)
 				}
 
 				json, err := json.Marshal(row)
 				if err != nil {
-					log.Fatalln(err)
+					panic(err)
 				}
 
 				w.Write(json)

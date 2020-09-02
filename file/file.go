@@ -3,7 +3,6 @@ package file
 import (
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -19,8 +18,12 @@ func BindRoutes(router *gin.RouterGroup, root string) {
 
 		data, err := ioutil.ReadFile(qs.Filepath(root))
 		if err != nil {
-			log.Fatal(err)
-			return
+			if os.IsNotExist(err) {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+
+			panic(err)
 		}
 
 		c.Stream(func(w io.Writer) bool {
@@ -35,16 +38,14 @@ func BindRoutes(router *gin.RouterGroup, root string) {
 
 		data, err := ioutil.ReadAll(c.Request.Body)
 		if err != nil {
-			log.Fatal(err)
-			return
+			panic(err)
 		}
 		err = ioutil.WriteFile(qs.Filepath(root), data, 0666)
 		if err != nil {
-			log.Fatal(err)
-			return
+			panic(err)
 		}
 
-		c.JSON(http.StatusCreated, gin.H{})
+		c.AbortWithStatus(http.StatusCreated)
 	})
 
 	router.DELETE("/", func(c *gin.Context) {
@@ -53,19 +54,23 @@ func BindRoutes(router *gin.RouterGroup, root string) {
 
 		err := os.Remove(qs.Filepath(root))
 		if err != nil {
-			log.Fatal(err)
-			return
+			if os.IsNotExist(err) {
+				c.AbortWithStatus(http.StatusNotFound)
+				return
+			}
+
+			panic(err)
 		}
 
-		c.JSON(http.StatusCreated, gin.H{})
+		c.AbortWithStatus(http.StatusCreated)
 	})
 }
 
 type querystring struct {
-	filename string `query:"filename" binding:"required"`
+	Filename string `form:"filename" binding:"required"`
 }
 
 // Filepath get filepath from querystring
 func (qs *querystring) Filepath(root string) string {
-	return path.Join(root, qs.filename)
+	return path.Join(root, qs.Filename)
 }

@@ -31,7 +31,7 @@ func main() {
 	*/
 	// Or just create your own Gin server
 
-	desktop.Init(&handlers, func() {
+	desktop.Init(handlers, func() {
 		log.Println("Executing clean-up function")
 		time.Sleep(1 * time.Second)
 		log.Println("Clean-up finished")
