@@ -6,16 +6,15 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/patarapolw/webview-server/file"
-	"github.com/patarapolw/webview-server/sqlite"
-
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	conf "github.com/patarapolw/webview-server/config"
 )
 
 // CreateServer create server with custom handlers
-func CreateServer(config *conf.Config) *http.Server {
+func CreateServer() Handlers {
+	config := conf.Get()
+
 	if !config.Debug {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -30,7 +29,7 @@ func CreateServer(config *conf.Config) *http.Server {
 					Name:     "token",
 					Value:    url.QueryEscape(config.Token),
 					Path:     "/",
-					Domain:   config.URL,
+					Domain:   config.URL(),
 					SameSite: http.SameSiteStrictMode,
 					Secure:   false,
 					HttpOnly: true,
@@ -72,15 +71,28 @@ func CreateServer(config *conf.Config) *http.Server {
 		}
 	})
 
-	file.BindRoutes(apiRouter.Group("/file"), config.Root)
-
-	if config.Sqlite != "" {
-		sqlite.BindRoutes(apiRouter.Group("/sqlite"), config.Sqlite)
+	return Handlers{
+		Config: config,
+		Root:   app,
+		API:    apiRouter,
 	}
+}
 
-	server := &http.Server{
-		Handler: app,
+// Handlers handlers for server
+type Handlers struct {
+	Config *conf.Config
+	Root   *gin.Engine
+	API    *gin.RouterGroup
+}
+
+// Server get server for handlers
+func (h *Handlers) Server() *http.Server {
+	return &http.Server{
+		Handler: h.Root,
 	}
+}
 
-	return server
+// Serve convenient method for serving HTTP
+func (h *Handlers) Serve() error {
+	return h.Server().Serve(h.Config.Listener)
 }
