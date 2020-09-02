@@ -7,7 +7,7 @@ See [the original post](https://dev.to/patarapolw/practical-web-server-in-vanill
 Tested with cURL's
 
 ```sh
-% PORT=3000 go run .
+% PORT=3000 ./webview-server
 % curl -i -X PUT --data 'hello' http://127.0.0.1:3000/api/file\?filename\=test.txt
 ```
 
@@ -151,16 +151,6 @@ You can also build for your platform, or multiple platforms at once -- take a pe
 
 Note that executables in macOS can also run in windowed mode (no console), by renaming the extension to `*.app`. No need to make a folder of `*.app/`.
 
-<small>I cannot upload <code>*.app</code> directly to GitHub Releases.</small>
+I cannot upload `*.app` directly to GitHub Releases.
 
 [`darwin`](https://en.wikipedia.org/wiki/Darwin_%28operating_system%29) binaries can used for macOS, although not built natively on macOS.
-
-## Open without Chrome
-
-You can also open from Terminal with
-
-```sh
-./webview-server{DEPEND_ON_PLATFORM}
-```
-
-Provided that you can also revert to windowed mode with environmental variable `WINDOW=1`.
