@@ -10,12 +10,13 @@ type WindowSize struct {
 
 // Config configuration for the webview
 type Config struct {
-	Www   string
-	Port  int
-	Debug bool
-	Token string
-	Size  WindowSize
-	Cmd   []string
+	Www    string
+	Port   int
+	Debug  bool
+	Token  string
+	Size   WindowSize
+	Cmd    []string
+	Sqlite string // Connection string of sqlite connection, see https://github.com/mattn/go-sqlite3#connection-string
 
 	// Internal
 	Root     string
