@@ -21,15 +21,14 @@ import (
 			return CGDisplayPixelsHigh(CGMainDisplayID());
 			}
 			#elif defined(_WIN32)
-			#include <iostream>
-		#include <windows.h>
+			#include <windows.h>
 
-		int display_width() {
-		return GetSystemMetrics(SM_CXFULLSCREEN);
-		}
-		int display_height() {
-		return GetSystemMetrics(SM_CXFULLSCREEN);
-		}
+			int display_width() {
+			return GetSystemMetrics(SM_CXFULLSCREEN);
+			}
+			int display_height() {
+			return GetSystemMetrics(SM_CXFULLSCREEN);
+			}
 			#else
 			#include <X11/Xlib.h>
 			int display_width() {
