@@ -9,39 +9,38 @@ import (
 	"time"
 
 	/*
-			#cgo darwin LDFLAGS: -framework CoreGraphics
-			#cgo linux pkg-config: x11
+		#cgo darwin LDFLAGS: -framework CoreGraphics
+		#cgo linux pkg-config: x11
 
-			#if defined(__APPLE__)
-			#include <CoreGraphics/CGDisplayConfiguration.h>
-			int display_width() {
-			return CGDisplayPixelsWide(CGMainDisplayID());
-			}
-			int display_height() {
-			return CGDisplayPixelsHigh(CGMainDisplayID());
-			}
-			#elif defined(_WIN32)
-			#include <windows.h>
-
-			int display_width() {
-			return GetSystemMetrics(SM_CXFULLSCREEN);
-			}
-			int display_height() {
-			return GetSystemMetrics(SM_CXFULLSCREEN);
-			}
-			#else
-			#include <X11/Xlib.h>
-			int display_width() {
-			Display* d = XOpenDisplay(NULL);
-			Screen*  s = DefaultScreenOfDisplay(d);
-			return s->width;
-			}
-			int display_height() {
-			Display* d = XOpenDisplay(NULL);
-			Screen*  s = DefaultScreenOfDisplay(d);
-			return s->height;
-			}
-			#endif
+		#if defined(__APPLE__)
+		#include <CoreGraphics/CGDisplayConfiguration.h>
+		int display_width() {
+		return CGDisplayPixelsWide(CGMainDisplayID());
+		}
+		int display_height() {
+		return CGDisplayPixelsHigh(CGMainDisplayID());
+		}
+		#elif defined(_WIN32)
+		#include <windows.h>
+		int display_width() {
+		return GetSystemMetrics(SM_CXFULLSCREEN);
+		}
+		int display_height() {
+		return GetSystemMetrics(SM_CXFULLSCREEN);
+		}
+		#else
+		#include <X11/Xlib.h>
+		int display_width() {
+		Display* d = XOpenDisplay(NULL);
+		Screen*  s = DefaultScreenOfDisplay(d);
+		return s->width;
+		}
+		int display_height() {
+		Display* d = XOpenDisplay(NULL);
+		Screen*  s = DefaultScreenOfDisplay(d);
+		return s->height;
+		}
+		#endif
 	*/
 	"C"
 
@@ -62,8 +61,8 @@ func Init(hs *server.Handlers, cleanup ...func()) {
 				Height: int(C.display_height()),
 			}
 
-			// Current method of getting screen size in linux and windows makes it fall offscreen
-			if runtime.GOOS == "linux" || runtime.GOOS == "windows" {
+			// Current method of getting screen size in linux makes it fall offscreen
+			if runtime.GOOS == "linux" {
 				hs.Config.Size.Width = hs.Config.Size.Width - 50
 				hs.Config.Size.Height = hs.Config.Size.Height - 100
 			}
