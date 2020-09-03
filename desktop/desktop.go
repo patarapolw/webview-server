@@ -9,44 +9,40 @@ import (
 	"time"
 
 	/*
-	   #cgo darwin LDFLAGS: -framework CoreGraphics
-	   #cgo linux pkg-config: x11
+			#cgo darwin LDFLAGS: -framework CoreGraphics
+			#cgo linux pkg-config: x11
 
-	   #if defined(__APPLE__)
-	   #include <CoreGraphics/CGDisplayConfiguration.h>
-	   int display_width() {
-	   	return CGDisplayPixelsWide(CGMainDisplayID());
-	   }
-	   int display_height() {
-	   	return CGDisplayPixelsHigh(CGMainDisplayID());
-	   }
-	   #elif defined(_WIN32)
-	   #include <wtypes.h>
-	   int display_width() {
-	   	RECT desktop;
-	   	const HWND hDesktop = GetDesktopWindow();
-	   	GetWindowRect(hDesktop, &desktop);
-	   	return desktop.right;
-	   }
-	   int display_height() {
-	   	RECT desktop;
-	   	const HWND hDesktop = GetDesktopWindow();
-	   	GetWindowRect(hDesktop, &desktop);
-	   	return desktop.bottom;
-	   }
-	   #else
-	   #include <X11/Xlib.h>
-	   int display_width() {
-	   	Display* d = XOpenDisplay(NULL);
-	   	Screen*  s = DefaultScreenOfDisplay(d);
-	   	return s->width;
-	   }
-	   int display_height() {
-	   	Display* d = XOpenDisplay(NULL);
-	   	Screen*  s = DefaultScreenOfDisplay(d);
-	   	return s->height;
-	   }
-	   #endif
+			#if defined(__APPLE__)
+			#include <CoreGraphics/CGDisplayConfiguration.h>
+			int display_width() {
+			return CGDisplayPixelsWide(CGMainDisplayID());
+			}
+			int display_height() {
+			return CGDisplayPixelsHigh(CGMainDisplayID());
+			}
+			#elif defined(_WIN32)
+			#include <iostream>
+		#include <windows.h>
+
+		int display_width() {
+		return GetSystemMetrics(SM_CXFULLSCREEN);
+		}
+		int display_height() {
+		return GetSystemMetrics(SM_CXFULLSCREEN);
+		}
+			#else
+			#include <X11/Xlib.h>
+			int display_width() {
+			Display* d = XOpenDisplay(NULL);
+			Screen*  s = DefaultScreenOfDisplay(d);
+			return s->width;
+			}
+			int display_height() {
+			Display* d = XOpenDisplay(NULL);
+			Screen*  s = DefaultScreenOfDisplay(d);
+			return s->height;
+			}
+			#endif
 	*/
 	"C"
 
